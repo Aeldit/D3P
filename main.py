@@ -22,7 +22,8 @@ def main():
         VERSIONS[i] = "MC_%s" % (VERSIONS[i].replace(".", "_"))
 
     for ver in VERSIONS:
-        parsing.parse_file(ver)
+        with open("output.mcfunction", "w") as wf:
+            wf.write(parsing.parse_file(ver))
     return None
 
 
