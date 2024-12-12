@@ -6,7 +6,7 @@
 tag @e[type=armor_stand,distance=..3,limit=1,sort=nearest] add sp_selected
 
 # Sets the color on the sign's text
-#ifdef MC_1_20_x
+#ver=1.20.x
 execute if entity @s[scores={ft_color=1}] run setblock ~ ~ ~ oak_sign{front_text: {messages: ['{"color":"dark_red","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}', '{"text":""}', '{"text":""}', '{"text":""}']}}
 execute if entity @s[scores={ft_color=2}] run setblock ~ ~ ~ oak_sign{front_text: {messages: ['{"color":"red","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}', '{"text":""}', '{"text":""}', '{"text":""}']}}
 execute if entity @s[scores={ft_color=3}] run setblock ~ ~ ~ oak_sign{front_text: {messages: ['{"color":"gold","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}', '{"text":""}', '{"text":""}', '{"text":""}']}}
@@ -23,7 +23,7 @@ execute if entity @s[scores={ft_color=13}] run setblock ~ ~ ~ oak_sign{front_tex
 execute if entity @s[scores={ft_color=14}] run setblock ~ ~ ~ oak_sign{front_text: {messages: ['{"color":"gray","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}', '{"text":""}', '{"text":""}', '{"text":""}']}}
 execute if entity @s[scores={ft_color=15}] run setblock ~ ~ ~ oak_sign{front_text: {messages: ['{"color":"dark_gray","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}', '{"text":""}', '{"text":""}', '{"text":""}']}}
 execute if entity @s[scores={ft_color=16}] run setblock ~ ~ ~ oak_sign{front_text: {messages: ['{"color":"black","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}', '{"text":""}', '{"text":""}', '{"text":""}']}}
-#elseifdef MC_1_19_4
+#ver=1.19.4
 execute if entity @s[scores={ft_color=1}] run setblock ~ ~ ~ oak_sign{Text1: '{"color":"dark_red","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}'}
 execute if entity @s[scores={ft_color=2}] run setblock ~ ~ ~ oak_sign{Text1: '{"color":"red","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}'}
 execute if entity @s[scores={ft_color=3}] run setblock ~ ~ ~ oak_sign{Text1: '{"color":"gold","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}'}
@@ -40,7 +40,7 @@ execute if entity @s[scores={ft_color=13}] run setblock ~ ~ ~ oak_sign{Text1: '{
 execute if entity @s[scores={ft_color=14}] run setblock ~ ~ ~ oak_sign{Text1: '{"color":"gray","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}'}
 execute if entity @s[scores={ft_color=15}] run setblock ~ ~ ~ oak_sign{Text1: '{"color":"dark_gray","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}'}
 execute if entity @s[scores={ft_color=16}] run setblock ~ ~ ~ oak_sign{Text1: '{"color":"black","nbt":"CustomName","entity":"@e[tag=sp_selected]","interpret":true}'}
-#endif
+#endver
 
 
 # Copy the text of the sign to the armor stand's name
@@ -59,3 +59,4 @@ tag @e[type=armor_stand,distance=..3,limit=1,sort=nearest,tag=sp_selected] add f
 tag @e[type=armor_stand,distance=..3,limit=1,sort=nearest,tag=sp_selected] remove sp_selected
 scoreboard players set @s ft_color 0
 scoreboard players enable @s ft_color
+
