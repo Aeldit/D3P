@@ -12,6 +12,10 @@ other code
 #endver
 """
 
+import sys
+from os import mkdir
+from os.path import exists
+
 RANGES = {
     "1.19.x": ("1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4"),
     "1.20.x": ("1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6"),
@@ -25,21 +29,19 @@ def parse_file_for_version(version: str):
 
     parsed = []
     should_take_line = True
-    print("'%s'" % version)
 
     for line in lines:
         if line.startswith("#ver="):
             ver = line.split("=")[1].removesuffix("\n")
             if version.endswith(".x"):
-                print(RANGES[version], "'%s'" % ver)
                 should_take_line = ver == version or ver in RANGES[version]
-                print(should_take_line)
             else:
                 should_take_line = ver == version
             continue
 
         elif line.startswith("#endver"):
             should_take_line = True
+            continue
 
         if should_take_line:
             parsed.append(line)
@@ -47,14 +49,21 @@ def parse_file_for_version(version: str):
     return "".join(parsed)
 
 
-def main():
-    # TODO: Create a dir for each version
-    for version in ("1.19.4", "1.20.x"):
+def main(versions):
+    for version in versions:
+        if not exists(version):
+            mkdir(version)
+
         # TODO: Change the output file the the corresponding file in the output directory
-        with open("output.mcfunction", "w") as wf:
+        with open("%s/output.mcfunction" % version, "w") as wf:
             wf.write(parse_file_for_version(version))
     return None
 
 
 if __name__ == "__main__":
-    main()
+    args = sys.argv
+    if len(args) < 2:
+        print("Missing version arguments")
+        exit(1)
+
+    main(args[1:])
