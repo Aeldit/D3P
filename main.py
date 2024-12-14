@@ -13,8 +13,8 @@ other code
 """
 
 import sys
-from os import mkdir
-from os.path import exists
+from os import listdir
+from os.path import exists, isdir, isfile
 
 RANGES = {
     "1.19.x": ("1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4"),
@@ -49,21 +49,58 @@ def parse_file_for_version(version: str):
     return "".join(parsed)
 
 
-def main(versions):
-    for version in versions:
-        if not exists(version):
-            mkdir(version)
+def find_all_versions(datapack_path: str) -> set[str]:
+    """
+    Iterates through all files in the given datapack directory and stores
+    which versions are used with the preprocessor
 
-        # TODO: Change the output file the the corresponding file in the output directory
-        with open("%s/output.mcfunction" % version, "w") as wf:
-            wf.write(parse_file_for_version(version))
-    return None
+    :param datapack_path: The path to the datapack folder
+    """
+    versions = set()
+    # Puts each file as a full path, because otherwise the files aren't found
+    paths_stack = ["%s/%s" % (datapack_path, file) for file in listdir(datapack_path)]
+
+    while len(paths_stack) != 0:
+        file = paths_stack.pop()
+        print(file)
+
+        # If the file is a dir, we add all of its files with their full path
+        if isdir(file):
+            paths_stack.extend(["%s/%s" % (file, f) for f in listdir(file)])
+
+        elif isfile(file) and file.endswith(".mcfunction"):
+            with open(file, "r") as rf:
+                lines = rf.readlines()
+
+            for version in tuple(
+                line.split("=")[1].strip()
+                for line in lines
+                if line.startswith("#ver=") and not len(line.split("=")[1].strip()) == 0
+            ):
+                if version not in versions:
+                    versions.add(version)
+    return versions
+
+
+def main(datapack_path: str) -> int:
+    if not exists(datapack_path):
+        print("The specified path does not exist ('%s')" % datapack_path)
+        return 1
+
+    print(find_all_versions(datapack_path))
+    return 0
 
 
 if __name__ == "__main__":
     args = sys.argv
-    if len(args) < 2:
-        print("Missing version arguments")
+
+    if "-d" not in args:
+        print("Datapack argument not specified (-d path/to/datapack)")
         exit(1)
 
-    main(args[1:])
+    d_idx = args.index("-d")
+    if len(args) < d_idx + 1:
+        print("Datapack argument not specified (-d path/to/datapack)")
+        exit(1)
+
+    main(args[d_idx + 1])
