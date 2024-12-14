@@ -62,7 +62,6 @@ def find_all_versions(datapack_path: str) -> set[str]:
 
     while len(paths_stack) != 0:
         file = paths_stack.pop()
-        print(file)
 
         # If the file is a dir, we add all of its files with their full path
         if isdir(file):
