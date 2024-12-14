@@ -13,9 +13,11 @@ other code
 """
 
 import sys
-from os import listdir
-from os.path import exists, isdir, isfile
+from os import listdir, makedirs, mkdir
+from os.path import dirname, exists, isdir, isfile
+from shutil import rmtree
 
+# TODO: Expand with more versions
 RANGES = {
     "1.19.x": ("1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4"),
     "1.20.x": ("1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6"),
@@ -23,10 +25,65 @@ RANGES = {
 }
 
 
-def parse_file_for_version(version: str):
-    with open("test.mcfunction", "r") as rf:
-        lines = rf.readlines()
+def get_files_tree(datapack_path: str) -> dict[str, tuple]:
+    """
+    Stores all the files found in the sub-directories of the given path
+    """
+    # Puts each file as a full path, because otherwise the files aren't found
+    paths_stack = ["%s/%s" % (datapack_path, file) for file in listdir(datapack_path)]
 
+    files = dict()
+
+    while len(paths_stack) != 0:
+        file = paths_stack.pop()
+
+        if isdir(file):
+            paths_stack.extend(["%s/%s" % (file, f) for f in listdir(file)])
+
+        elif isfile(file):
+            if file.endswith(".mcfunction"):
+                with open(file, "r") as rf:
+                    files[file] = tuple(rf.readlines())
+            else:
+                with open(file, "rb") as rf:
+                    files[file] = tuple(rf.read())
+    return files
+
+
+def find_all_versions(files: dict[str, tuple]) -> set[str]:
+    """
+    Iterates through all files and sub-directories in the given datapack
+    directory and stores which versions are used with the preprocessor
+
+    :param datapack_path: The path to the datapack folder
+    :returns: A set containing all the versions that were found
+    """
+    versions = set()
+    for file, lines in files.items():
+        if not exists(file) or not file.endswith(".mcfunction"):
+            continue
+
+        for version in tuple(
+            line.split("=")[1].removesuffix("\n")
+            for line in lines
+            if type(line) is str
+            and line.startswith("#ver=")
+            and not len(line.split("=")[1].removesuffix("\n")) == 0
+        ):
+            if version not in versions:
+                versions.add(version)
+    return versions
+
+
+def parse_file_for_version(version: str, lines: tuple) -> str:
+    """
+    Parses the given lines and creates from them a string that contains only
+    the code concerning the given version
+
+    :param version: The version to use for the current parsing
+    :param lines: The lines of the file
+    :returns: The string parsed for the given version
+    """
     parsed = []
     should_take_line = True
 
@@ -49,36 +106,35 @@ def parse_file_for_version(version: str):
     return "".join(parsed)
 
 
-def find_all_versions(datapack_path: str) -> set[str]:
+def generate_pack_for_version(
+    version: str, files: dict[str, tuple], pack_path: str
+) -> None:
     """
-    Iterates through all files in the given datapack directory and stores
-    which versions are used with the preprocessor
+    Generates the same directory tree as the datapack, but with the version as
+    root directory and by applying the preprocessing to the mcfunction files
 
-    :param datapack_path: The path to the datapack folder
+    :param version: The version as a string
+    :param files: A dict containing for each directory, all the files that are inside
+    :param pack_path: The path to the root directory of the pack
     """
-    versions = set()
-    # Puts each file as a full path, because otherwise the files aren't found
-    paths_stack = ["%s/%s" % (datapack_path, file) for file in listdir(datapack_path)]
+    if exists(version):
+        rmtree(version)
+    mkdir(version)
 
-    while len(paths_stack) != 0:
-        file = paths_stack.pop()
+    for file, lines in files.items():
+        if lines is None:
+            continue
 
-        # If the file is a dir, we add all of its files with their full path
-        if isdir(file):
-            paths_stack.extend(["%s/%s" % (file, f) for f in listdir(file)])
+        new_file = file.replace(pack_path, version)
+        makedirs(dirname(new_file), exist_ok=True)
 
-        elif isfile(file) and file.endswith(".mcfunction"):
-            with open(file, "r") as rf:
-                lines = rf.readlines()
-
-            for version in tuple(
-                line.split("=")[1].strip()
-                for line in lines
-                if line.startswith("#ver=") and not len(line.split("=")[1].strip()) == 0
-            ):
-                if version not in versions:
-                    versions.add(version)
-    return versions
+        if all(type(line) is str for line in lines):
+            with open(new_file, "w") as wf:
+                wf.write(parse_file_for_version(version, lines))
+        elif all(type(line) is int for line in lines):
+            with open(new_file, "wb") as wf:
+                wf.write(bytes(lines))
+    return None
 
 
 def main(datapack_path: str) -> int:
@@ -86,7 +142,10 @@ def main(datapack_path: str) -> int:
         print("The specified path does not exist ('%s')" % datapack_path)
         return 1
 
-    print(find_all_versions(datapack_path))
+    files = get_files_tree(datapack_path)
+    for version in find_all_versions(files):
+        print(version)
+        generate_pack_for_version(version, files, datapack_path)
     return 0
 
 
@@ -102,4 +161,4 @@ if __name__ == "__main__":
         print("Datapack argument not specified (-d path/to/datapack)")
         exit(1)
 
-    main(args[d_idx + 1])
+    exit(main(args[d_idx + 1]))
