@@ -1,5 +1,7 @@
 #!/bin/env python3
 """
+:author: Aeldit <https://github.com/Aeldit>
+
 D3P (DataPack PreProcessor)
 
 The goal of this project is to add a syntax for preprocessed 'if's to the mcfunction language
