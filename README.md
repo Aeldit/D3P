@@ -1,8 +1,5 @@
 # D3P (DataPack PreProcessor)
 
-This program takes a Datapack directory as input and for each Minecraft version found
-in `.mcfunction` files, a directory with the name of the version will be created.
-
 ## Usage
 
 ```shell
@@ -11,6 +8,10 @@ in `.mcfunction` files, a directory with the name of the version will be created
 
 
 ## Detailed explanation
+
+This program takes a Datapack directory as input and for each Minecraft version found
+in `.mcfunction` files, a directory with the name of the version will be created.
+
 This directory will contain the same files and folders as the Datapack given as argument, but
 the `.mcfunction` files will be preprocessed before.
 
@@ -24,7 +25,7 @@ For example, lets say we have a pack with this tree :
 │   │       └── root.json
 │   ├── datapack_name
 │   │   ├── functions
-│   │   │   └──  .mcfunction
+│   │   │   └──  .mcfunction
 │   └── minecraft
 │       └── tags
 │           └── functions
