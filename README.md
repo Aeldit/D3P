@@ -1,5 +1,8 @@
 # D3P (DataPack PreProcessor)
 
+The goal of this project is to let you develop a Datapack working on multiple versions,
+but allowing you to specify code for specific versions of Minecraft
+
 ## Usage
 
 ```shell
