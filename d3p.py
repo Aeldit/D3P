@@ -82,13 +82,16 @@ def find_all_versions(files: dict[str, tuple]) -> set[str]:
     return versions
 
 
-def parse_file_for_version(version: str, lines: tuple) -> str:
+def parse_file_for_version(
+    version: str, lines: tuple[str], strip_comments: bool
+) -> str:
     """
     Parses the given lines and creates from them a string that contains only
     the code concerning the given version
 
     :param version: The version to use for the current parsing
     :param lines: The lines of the file
+    :param strip_comments: Whether to keep the comments or not
     :returns: The string parsed for the given version
     """
     parsed = []
@@ -107,14 +110,14 @@ def parse_file_for_version(version: str, lines: tuple) -> str:
             should_take_line = True
             continue
 
-        if should_take_line:
+        if should_take_line and not (strip_comments and line.strip().startswith("#")):
             parsed.append(line)
 
     return "".join(parsed)
 
 
 def generate_pack_for_version(
-    version: str, files: dict[str, tuple], pack_path: str
+    version: str, files: dict[str, tuple], pack_path: str, strip_comments: bool
 ) -> None:
     """
     Generates the same directory tree as the datapack, but with the version as
@@ -122,6 +125,7 @@ def generate_pack_for_version(
 
     :param version: The version as a string
     :param files: A dict containing for each directory, all the files that are inside
+    :param strip_comments: Whether to keep the comments or not
     :param pack_path: The path to the root directory of the pack
     """
     if exists(version):
@@ -137,14 +141,14 @@ def generate_pack_for_version(
 
         if all(type(line) is str for line in lines):
             with open(new_file, "w") as wf:
-                wf.write(parse_file_for_version(version, lines))
+                wf.write(parse_file_for_version(version, lines, strip_comments))
         elif all(type(line) is int for line in lines):
             with open(new_file, "wb") as wf:
                 wf.write(bytes(lines))
     return None
 
 
-def main(datapack_path: str) -> int:
+def main(datapack_path: str, strip_comments: bool) -> int:
     if not exists(datapack_path):
         print("The specified path does not exist ('%s')" % datapack_path)
         return 1
@@ -152,20 +156,25 @@ def main(datapack_path: str) -> int:
     files = get_files_tree(datapack_path)
     for version in find_all_versions(files):
         print(version)
-        generate_pack_for_version(version, files, datapack_path)
+        generate_pack_for_version(version, files, datapack_path, strip_comments)
     return 0
 
 
 if __name__ == "__main__":
+    usage = (
+        "Usage:\n    ./d3p.py -d /path/to/datapack_folder [-OPTION]\n\nOptions:"
+        "\n    -sc: Strip Comments\n        Remove comments from each mcfunction file"
+    )
+
     args = sys.argv
 
     if "-d" not in args:
-        print("Datapack argument not specified (-d path/to/datapack)")
+        print(usage)
         exit(1)
 
     d_idx = args.index("-d")
     if len(args) < d_idx + 1:
-        print("Datapack argument not specified (-d path/to/datapack)")
+        print(usage)
         exit(1)
 
-    exit(main(args[d_idx + 1]))
+    exit(main(args[d_idx + 1], "-sc" in args))
