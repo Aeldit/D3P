@@ -30,6 +30,7 @@ RANGES = {
     "1.20.x": ("1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6"),
     "1.21.x": ("1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4"),
 }
+RANGES_KEYS = RANGES.keys()
 
 
 def get_files_tree(datapack_path: str) -> dict[str, tuple]:
@@ -65,6 +66,9 @@ def find_all_versions(files: dict[str, tuple]) -> set[str]:
     :param datapack_path: The path to the datapack folder
     :returns: A set containing all the versions that were found
     """
+    # TODO: Allow for versions to be ranges (1.20.x-1.21.x would be all
+    # versions in between, and 1.20,1.20.1,1.20.3 would be only the 3 specified
+    # versions)
     versions = set()
     for file, lines in files.items():
         if not exists(file) or not file.endswith(".mcfunction"):
@@ -79,6 +83,7 @@ def find_all_versions(files: dict[str, tuple]) -> set[str]:
         ):
             if version not in versions:
                 versions.add(version)
+    print(versions)
     return versions
 
 
@@ -100,10 +105,23 @@ def parse_file_for_version(
     for line in lines:
         if line.startswith("#ver="):
             ver = line.split("=")[1].removesuffix("\n")
-            if version.endswith(".x"):
-                should_take_line = ver == version or ver in RANGES[version]
+
+            if ver != version:
+                # Range in the form '1.20.x-1.21.x'
+                if ver.count("-") == 1:
+                    # FIX: Doesn't always work
+                    should_take_line = any(
+                        version in RANGES[v] for v in ver.split("-") if v in RANGES_KEYS
+                    )
+
+                # Simple '1.XX.x' version
+                elif ver.endswith(".x") and ver in RANGES_KEYS:
+                    should_take_line = version in RANGES[ver]
+
+                else:
+                    should_take_line = False
             else:
-                should_take_line = ver == version
+                should_take_line = True
             continue
 
         elif line.startswith("#endver"):
