@@ -66,9 +66,6 @@ def find_all_versions(files: dict[str, tuple]) -> set[str]:
     :param datapack_path: The path to the datapack folder
     :returns: A set containing all the versions that were found
     """
-    # TODO: Allow for versions to be ranges (1.20.x-1.21.x would be all
-    # versions in between, and 1.20,1.20.1,1.20.3 would be only the 3 specified
-    # versions)
     versions = set()
     for file, lines in files.items():
         if not exists(file) or not file.endswith(".mcfunction"):
@@ -83,7 +80,6 @@ def find_all_versions(files: dict[str, tuple]) -> set[str]:
         ):
             if version not in versions:
                 versions.add(version)
-    print(versions)
     return versions
 
 
@@ -109,7 +105,6 @@ def parse_file_for_version(
             if ver != version:
                 # Range in the form '1.20.x-1.21.x'
                 if ver.count("-") == 1:
-                    # FIX: Doesn't always work
                     should_take_line = any(
                         version in RANGES[v] for v in ver.split("-") if v in RANGES_KEYS
                     )
@@ -118,6 +113,7 @@ def parse_file_for_version(
                 elif ver.endswith(".x") and ver in RANGES_KEYS:
                     should_take_line = version in RANGES[ver]
 
+                # Invalid preprocessor directive
                 else:
                     should_take_line = False
             else:
