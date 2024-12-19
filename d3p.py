@@ -27,7 +27,15 @@ RANGES = {
     "1.17.x": ("1.17", "1.17.1"),
     "1.18.x": ("1.18", "1.18.1", "1.18.2"),
     "1.19.x": ("1.19", "1.19.1", "1.19.2", "1.19.3", "1.19.4"),
-    "1.20.x": ("1.20", "1.20.1", "1.20.2", "1.20.3", "1.20.4", "1.20.5", "1.20.6"),
+    "1.20.x": (
+        "1.20",
+        "1.20.1",
+        "1.20.2",
+        "1.20.3",
+        "1.20.4",
+        "1.20.5",
+        "1.20.6",
+    ),
     "1.21.x": ("1.21", "1.21.1", "1.21.2", "1.21.3", "1.21.4"),
 }
 RANGES_KEYS = RANGES.keys()
@@ -38,7 +46,9 @@ def get_files_tree(datapack_path: str) -> dict[str, tuple]:
     Stores all the files found in the sub-directories of the given path
     """
     # Puts each file as a full path, because otherwise the files aren't found
-    paths_stack = ["%s/%s" % (datapack_path, file) for file in listdir(datapack_path)]
+    paths_stack = [
+        "%s/%s" % (datapack_path, file) for file in listdir(datapack_path)
+    ]
 
     files = dict()
 
@@ -106,7 +116,9 @@ def parse_file_for_version(
                 # Range in the form '1.20.x-1.21.x'
                 if ver.count("-") == 1:
                     should_take_line = any(
-                        version in RANGES[v] for v in ver.split("-") if v in RANGES_KEYS
+                        version in RANGES[v]
+                        for v in ver.split("-")
+                        if v in RANGES_KEYS
                     )
 
                 # Simple '1.XX.x' version
@@ -124,7 +136,9 @@ def parse_file_for_version(
             should_take_line = True
             continue
 
-        if should_take_line and not (strip_comments and line.strip().startswith("#")):
+        if should_take_line and not (
+            strip_comments and line.strip().startswith("#")
+        ):
             parsed.append(line)
 
     return "".join(parsed)
@@ -138,7 +152,7 @@ def generate_pack_for_version(
     root directory and by applying the preprocessing to the mcfunction files
 
     :param version: The version as a string
-    :param files: A dict containing for each directory, all the files that are inside
+    :param files: A dict in the form directory:listdir(directory)
     :param strip_comments: Whether to keep the comments or not
     :param pack_path: The path to the root directory of the pack
     """
@@ -177,7 +191,8 @@ def main(datapack_path: str, strip_comments: bool) -> int:
 if __name__ == "__main__":
     usage = (
         "Usage:\n    ./d3p.py -d /path/to/datapack_folder [-OPTION]\n\nOptions:"
-        "\n    -sc: Strip Comments\n        Remove comments from each mcfunction file"
+        "\n    -sc: Strip Comments\n        Remove comments from each "
+        "mcfunction file"
     )
 
     args = sys.argv
